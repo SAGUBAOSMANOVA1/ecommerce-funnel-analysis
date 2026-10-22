@@ -1,111 +1,176 @@
-# E-Commerce Funnel Analysis – View to Purchase
+# E-Commerce Funnel Analysis — View to Purchase
 
-## 1. Project Overview
+## Project Overview
 
-This project analyzes e-commerce event data for January and February 2020. The goal is to understand user behavior across product views, cart activity, and purchases, compare monthly performance, identify category and brand conversion patterns, and detect unusual purchase prices.
+This project analyzes e-commerce user behavior using event-level data from January and February 2020. The main objective is to examine the conversion funnel, identify potential drop-off points, compare performance across months, product categories, and brands, and investigate product pricing outliers.
 
-## 2. Dataset
+## Dataset
 
-- **January:** 4,264,752 events
-- **February:** 4,156,682 events
-- **Combined dataset:** 8,421,434 events
+- **Period:** January–February 2020
+- **Total events:** 8,421,434
+- **January events:** 4,264,752
+- **February events:** 4,156,682
 - **Columns:** `event_time`, `event_type`, `product_id`, `category_id`, `category_code`, `brand`, `price`, `user_id`, `user_session`
 
-The data contains four event types: `view`, `cart`, `remove_from_cart`, and `purchase`.
+The dataset contains product views, cart additions, cart removals, and purchases.
 
-## 3. Data Preparation
+## Tools and Libraries
 
-- Combined the January and February CSV files into one DataFrame.
-- Converted `event_time` to a UTC datetime format.
-- Created a `month` column for monthly comparisons.
-- Checked missing values and data types.
-- Retained records with missing category and brand information for analyses where those fields were not required.
+- Python
+- Pandas
+- NumPy
+- Matplotlib
+- Seaborn
+- Jupyter Notebook
 
-Missing values were concentrated in `category_code` (98.20%), `brand` (42.77%), and `user_session` (0.03%). Category and brand analyses excluded records with missing values in the corresponding field.
+## Data Preparation
 
-## 4. Key Results
+The January and February datasets were combined into one DataFrame. Event timestamps were validated, and a month column was used to support monthly comparisons.
 
-### Overall Funnel
+Missing values were examined:
+- `category_code`: 98.20%
+- `brand`: 42.77%
+- `user_session`: 0.03%
 
-| Stage | Unique users | Percentage of view users |
+Missing category and brand values were considered during interpretation. Negative prices were identified and excluded from the cleaned price-analysis dataset; zero prices were retained.
+
+## Event Distribution
+
+| Event Type | Event Count | Percentage |
+|---|---:|---:|
+| View | 3,991,194 | 47.39% |
+| Cart | 2,297,017 | 27.28% |
+| Remove from cart | 1,627,433 | 19.32% |
+| Purchase | 505,790 | 6.01% |
+
+Views account for the largest share of recorded events. Cart removals also represent a substantial portion of activity, suggesting that cart abandonment and product-selection behavior deserve further investigation.
+
+## User-Level Funnel
+
+The number of unique users recorded at each event type was:
+
+| Event Type | Unique Users | Percentage of View Users |
 |---|---:|---:|
 | View | 716,987 | 100.00% |
 | Cart | 162,035 | 22.60% |
 | Purchase | 49,473 | 6.90% |
 
-### Monthly Conversion
+These figures represent unique users associated with each event type. They do not necessarily mean that every user progressed sequentially through the funnel stages.
 
-| Month | Unique view users | Unique purchase users | View-to-purchase ratio |
+## Session-Level Sequential Funnel
+
+A separate session-based analysis examined sessions containing the stages in the required chronological order: view, cart, and purchase.
+
+| Funnel Stage | Number of Sessions | Conversion from View |
+|---|---:|---:|
+| View | 1,784,916 | 100.00% |
+| View → Cart | 220,441 | 12.35% |
+| View → Cart → Purchase | 28,179 | 1.58% |
+
+The results indicate that 12.35% of view-containing sessions also contained a cart event after a view, while 1.58% reached the complete view-to-cart-to-purchase sequence under the implemented session-based method.
+
+## Monthly Comparison
+
+### Unique-User Conversion
+
+| Month | View Users | Purchase Users | View-to-Purchase Rate |
 |---|---:|---:|---:|
 | January 2020 | 397,775 | 28,220 | 7.09% |
 | February 2020 | 379,246 | 25,759 | 6.79% |
 
-The view-to-purchase ratio decreased by 0.30 percentage points from January to February.
+The unique-user view-to-purchase rate decreased slightly from January to February.
 
-Purchase events declined from 263,797 in January to 241,993 in February, a decrease of 8.27%.
+### Event-Based Comparison
 
-### Category Analysis
+The purchase-event-to-view-event ratios were 12.95% in January and 12.39% in February. These are event-count ratios, not unique-user conversion rates.
 
-Among the eight categories selected by unique view-user count, `apparel.glove` had the highest view-to-purchase ratio at 38.91%, while `accessories.bag` had the lowest at 1.43%.
+## Category Analysis
 
-### Brand Analysis
+The category analysis compared view, cart, and purchase events across product categories with available category codes.
 
-Among the ten brands selected by purchase-event count, `bpw.style` had the highest view-to-purchase ratio at 22.95%. `kapous` had the lowest ratio at 7.14%.
+Examples of event-based purchase-to-view ratios include:
 
-### Purchase Price Outliers
+- `stationery.cartrige`: 23.77%
+- `apparel.glove`: 38.91%
+- `appliances.environment.vacuum`: 8.85%
+- `furniture.living_room.cabinet`: 2.21%
 
-The IQR method identified 34,947 purchase events as price outliers, representing 6.91% of purchase events.
+These ratios are calculated from event counts. They should not be interpreted as sequential user conversion rates. Since most records lack a category code, the results describe only the records with available category information.
 
-- Q1: 1.59
-- Q3: 5.56
+## Brand Analysis
+
+The top 10 brands by the selected analysis criteria were compared using view and purchase activity.
+
+The highest event-based purchase-to-view ratio among the displayed brands was:
+
+- `bpw.style`: 22.95%
+
+This is an event-based ratio rather than the percentage of unique viewers who purchased. Brand-level results should also be interpreted in light of missing brand values and differences in event volume.
+
+## Product-Level Analysis
+
+Products with at least 1,000 view events were examined to identify products with low event-based purchase-to-view ratios.
+
+Examples included:
+- Product `27759`: 1,062 views and no purchase events.
+- Product `5915337`: 5,900 views and 5 purchase events.
+- Product `5688835`: 1,135 views and 1 purchase event.
+
+These products may warrant further investigation into pricing, product descriptions, availability, and user experience. The results indicate candidates for further review, not proof of why conversion was low.
+
+## Price Outlier Analysis
+
+The Interquartile Range (IQR) method was used to identify potential price outliers among purchase events.
+
+- First quartile (Q1): 1.59
+- Third quartile (Q3): 5.56
 - IQR: 3.97
-- Lower bound: -4.37
-- Upper bound: 11.52
+- Upper IQR boundary: 11.52
+- Potential purchase-price outliers: 34,876
 
-These observations are statistical outliers and are not necessarily data errors.
+The lower IQR boundary was negative, so the upper boundary was the relevant threshold for identifying high-price observations among non-negative prices. Statistical outliers are not necessarily data errors and should be reviewed before removal.
 
-### Bonus: Time from View to Purchase
+## Bonus Analysis 1: Time from View to Purchase
 
-For 182,132 purchase events, a previous view of the same product by the same user was identified.
+The analysis matched purchase events to a preceding view of the same product by the same user.
 
-- Mean time: 2,069.81 minutes
-- Median time: 34.22 minutes
+- Matched purchase records: 182,132
+- Mean time to purchase: 2,069.81 minutes
+- Median time to purchase: 34.22 minutes
 
-The mean is substantially higher than the median, indicating that some view-to-purchase intervals were very long.
+The mean is much higher than the median, indicating a right-skewed distribution. Because the matching method does not require the view and purchase to occur in the same session, long intervals may include activity separated by days or weeks.
 
-### Bonus: High-View, Low-Conversion Products
+## Bonus Analysis 2: High-View, Low-Conversion Products
 
-Product `5915337` had 4,818 unique view users and 5 unique purchase users, giving a view-to-purchase ratio of 0.10%. Product `5808664` had 10,426 unique view users and 22 unique purchase users, giving a ratio of 0.21%.
+Products with high view counts and low event-based purchase-to-view ratios were identified. This analysis can help prioritize products for additional investigation and potential conversion improvements.
 
-These products may warrant further investigation into price, availability, product-page quality, or checkout friction. The current dataset does not establish the cause.
+The analysis is exploratory. Low ratios alone do not establish the causes of poor performance.
 
-## 5. Business Insights
+## Visualizations
 
-1. **Monthly performance weakened:** Purchase events decreased by 8.27% in February, while the view-to-purchase ratio declined from 7.09% to 6.79%. Investigate whether the change is associated with traffic quality, product availability, or checkout performance.
-2. **Category performance varies substantially:** `apparel.glove` showed a much higher view-to-purchase ratio than `accessories.bag`. Investigate differences in pricing, demand, and product presentation before reallocating marketing resources.
-3. **Brand conversion varies:** `bpw.style` had the highest view-to-purchase ratio among the selected top brands, while `kapous` had the lowest. Compare product mix, pricing, and traffic sources to understand the difference.
-4. **Some highly viewed products convert poorly:** Products such as `5915337` and `5808664` receive many unique views but few unique purchase users. Prioritize these products for a product-page and availability review.
-5. **Purchase prices include a notable outlier group:** 6.91% of purchase events fell outside the IQR thresholds. Inspect high-priced observations and verify whether they represent premium products or data-quality issues before making pricing decisions.
+The notebook includes the following charts:
 
-## 6. Visualizations
+1. Event Distribution
+2. Unique Users by Stage
+3. Monthly View-to-Purchase Conversion Rate
+4. Category View-to-Purchase Conversion Rate
+5. Brand View-to-Purchase Conversion Rate
+6. Purchase Price Outliers
+7. Sequential E-commerce Funnel
 
-The notebook includes the following visual analyses:
+## Key Findings
 
-- Overall funnel bar chart
-- View-to-purchase conversion by top eight categories
-- January versus February conversion comparison
-- Horizontal view-to-purchase conversion chart for the top ten brands
-- Purchase-price boxplot for IQR outliers
-- Low-conversion chart for high-view products
+- Views represented 47.39% of all recorded events.
+- The unique-user view-to-purchase rate decreased from 7.09% in January to 6.79% in February.
+- The session-based complete view-to-cart-to-purchase funnel contained 28,179 sessions, representing 1.58% of sessions with a view.
+- Category and brand conversion patterns varied considerably.
+- Some products attracted many views but recorded very few purchases.
+- Purchase-price outliers and long view-to-purchase intervals require careful interpretation.
+- Missing category codes limit the coverage of category-level analysis.
 
-## 7. Methodology and Limitations
+## Conclusion
 
-- Funnel and conversion calculations use unique users at each event stage. They measure stage presence, not necessarily a verified sequential journey from view to cart to purchase.
-- Category and brand ratios compare unique users associated with view and purchase events for each category or brand. They do not prove that every purchasing user previously viewed the same item.
-- The view-to-purchase time calculation matches a purchase to the most recent preceding view of the same product by the same user in the available dataset. Earlier views outside the dataset's date range cannot be observed.
-- Missing category and brand values reduce the coverage of category and brand analyses.
-- Observational data can identify patterns but cannot independently establish why conversion changed.
+This project demonstrates an end-to-end exploratory analysis of e-commerce event data, including data preparation, funnel measurement, monthly comparison, category and brand analysis, product-level investigation, and price outlier detection.
 
-## 8. Conclusion
+The findings help identify where further investigation may improve the customer journey. More detailed session-level validation and additional business context would be useful before making operational decisions.
 
-The analysis identifies a decline in purchase-event volume and a small reduction in the monthly view-to-purchase ratio from January to February 2020. Conversion also varies considerably by category, brand, and product. These findings can guide further investigation into product presentation, availability, pricing, and the checkout journey.
